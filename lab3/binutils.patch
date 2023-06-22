@@ -1,0 +1,65 @@
+diff --git a/include/opcode/riscv-opc.h b/include/opcode/riscv-opc.h
+index 85d35c1efc9..5a3714a4433 100644
+--- a/include/opcode/riscv-opc.h
++++ b/include/opcode/riscv-opc.h
+@@ -21,6 +21,23 @@
+ #ifndef RISCV_ENCODING_H
+ #define RISCV_ENCODING_H
+ /* Instruction opcode macros.  */
++
++#define MATCH_SVUNPACK 0x0000000b        // custom-0, funct3 = 0
++#define MASK_SVUNPACK 0xfff0707f        // funct7, funct3, opcode, and rs2
++#define MATCH_SVPACK 0x0000100b        // custom-0, funct3 = 1
++#define MASK_SVPACK 0xfe00707f        // funct7, funct3, and opcode
++#define MATCH_SVBRDCST 0x0000200b        // custom-0, funct3 = 2
++#define MASK_SVBRDCST 0xfff0707f        // funct7, funct3, opcode, and rs2
++#define MATCH_SVADDI 0x0000300b        // custom-0, funct3 = 3
++#define MASK_SVADDI 0x0000707f        // funct3, and opcode
++#define MATCH_SVADD 0x0000400b        // custom-0, funct3 = 4
++#define MASK_SVADD 0xfe00707f        // funct7, funct3, and opcode
++#define MATCH_SVSUB 0x0000500b        // custom-0, funct3 = 5
++#define MASK_SVSUB 0xfe00707f        // funct7, funct3, and opcode
++#define MATCH_SVMUL 0x0000600b        // custom-0, funct3 = 6
++#define MASK_SVMUL 0xfe00707f        // funct7, funct3, and opcode
++
++
+ #define MATCH_SLLI_RV32 0x1013
+ #define MASK_SLLI_RV32  0xfe00707f
+ #define MATCH_SRLI_RV32 0x5013
+@@ -2783,6 +2800,15 @@
+ #define CSR_VLENB 0xc22
+ #endif /* RISCV_ENCODING_H */
+ #ifdef DECLARE_INSN
++
++DECLARE_INSN(svunpack, MATCH_SVUNPACK, MASK_SVUNPACK)
++DECLARE_INSN(svpack, MATCH_SVPACK, MASK_SVPACK)
++DECLARE_INSN(svbrdcst, MATCH_SVBRDCST, MASK_SVBRDCST)
++DECLARE_INSN(svaddi, MATCH_SVADDI, MASK_SVADDI)
++DECLARE_INSN(svadd, MATCH_SVADD, MASK_SVADD)
++DECLARE_INSN(svsub, MATCH_SVSUB, MASK_SVSUB)
++DECLARE_INSN(svmul, MATCH_SVMUL, MASK_SVMUL)
++
+ DECLARE_INSN(slli_rv32, MATCH_SLLI_RV32, MASK_SLLI_RV32)
+ DECLARE_INSN(srli_rv32, MATCH_SRLI_RV32, MASK_SRLI_RV32)
+ DECLARE_INSN(srai_rv32, MATCH_SRAI_RV32, MASK_SRAI_RV32)
+diff --git a/opcodes/riscv-opc.c b/opcodes/riscv-opc.c
+index f67375f10a9..f7f147836bf 100644
+--- a/opcodes/riscv-opc.c
++++ b/opcodes/riscv-opc.c
+@@ -319,6 +319,16 @@ const struct riscv_opcode riscv_opcodes[] =
+ {"pause",       0, INSN_CLASS_ZIHINTPAUSE, "", MATCH_PAUSE, MASK_PAUSE, match_opcode, 0 },
+ 
+ /* Basic RVI instructions and aliases.  */
++
++{"svunpack",    0, INSN_CLASS_I,     "d,s",       MATCH_SVUNPACK, MASK_SVUNPACK, match_opcode, 0 },
++{"svpack",      0, INSN_CLASS_I,     "d,s,t",     MATCH_SVPACK, MASK_SVPACK, match_opcode, 0 },
++{"svbrdcst",    0, INSN_CLASS_I,     "d,s",       MATCH_SVBRDCST, MASK_SVBRDCST, match_opcode, 0 },
++{"svaddi",    0, INSN_CLASS_I,     "d,s,j",       MATCH_SVADDI, MASK_SVADDI, match_opcode, 0 },
++{"svadd",    0, INSN_CLASS_I,     "d,s,t",       MATCH_SVADD, MASK_SVADD, match_opcode, 0 },
++{"svsub",    0, INSN_CLASS_I,     "d,s,t",       MATCH_SVSUB, MASK_SVSUB, match_opcode, 0 },
++{"svmul",    0, INSN_CLASS_M,     "d,s,t",       MATCH_SVMUL, MASK_SVMUL, match_opcode, 0 },
++
++
+ {"unimp",       0, INSN_CLASS_C, "",          0, 0xffffU, match_opcode, INSN_ALIAS },
+ {"unimp",       0, INSN_CLASS_I, "",          MATCH_CSRRW|(CSR_CYCLE << OP_SH_CSR), 0xffffffffU,  match_opcode, 0 }, /* csrw cycle, x0  */
+ {"ebreak",      0, INSN_CLASS_C, "",          MATCH_C_EBREAK, MASK_C_EBREAK, match_opcode, INSN_ALIAS },
